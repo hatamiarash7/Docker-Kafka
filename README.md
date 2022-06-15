@@ -9,6 +9,7 @@
 Edit `.env` file and run stack:
 
 ```bash
+cp .env.example .env
 docker compose up -d
 ```
 
