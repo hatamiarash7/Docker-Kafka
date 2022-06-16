@@ -1,46 +1,43 @@
-version: "3.9"
+version: "3.8"
 
 services:
   kafka:
-    image: bitnami/kafka:$KAFKA_VERSION
-    container_name: $NAME
+    image: $APP_REPO:$APP_VERSION
+    container_name: $APP_NAME
     restart: always
     ports:
-      - $KAFKA_PORT:9092
+      - "$APP_PORT:9092"
     volumes:
-      - kafka_data:/bitnami
+      - "kafka_data:/bitnami"
     environment:
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      ALLOW_PLAINTEXT_LISTENER: yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
 
   zookeeper:
-    image: bitnami/zookeeper:$ZK_VERSION
-    container_name: $NAME-zookeeper
+    image: $KAFKA_ZOOMKEEPER_REPO:$KAFKA_ZOOMKEEPER_VERSION
+    container_name: $APP_NAME-zookeeper
     restart: always
     ports:
-      - $ZK_PORT:2181
+      - "$KAFKA_ZOOMKEEPER_PORT:2181"
     volumes:
-      - zookeeper_data:/bitnami
+      - "zookeeper_data:/bitnami"
     environment:
-      ALLOW_ANONYMOUS_LOGIN: yes
+      - ALLOW_ANONYMOUS_LOGIN=yes
 
   cmak:
-    image: ghcr.io/eshepelyuk/dckr/cmak-3.0.0.5:$CMAK_VERSION
-    container_name: $NAME-cmak
+    image: $KAFKA_CMAK_REPO:$KAFKA_CMAK_VERSION
+    container_name: $APP_NAME-cmak
     restart: always
     ports:
-      - $CMAK_PORT:9000
+      - "$KAFKA_CMAK_PORT:9000"
     environment:
-      ZK_HOSTS: zookeeper:2181
-      APPLICATION_SECRET: random-secret
-      KAFKA_MANAGER_AUTH_ENABLED: true
-      KAFKA_MANAGER_USERNAME: $CMAK_USER
-      KAFKA_MANAGER_PASSWORD: $CMAK_PASSWORD
-    depends_on:
-      - kafka
-      - zookeeper
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "random-secret"
+      KAFKA_MANAGER_AUTH_ENABLED: "true"
+      KAFKA_MANAGER_USERNAME: $KAFKA_CMAK_USER
+      KAFKA_MANAGER_PASSWORD: $KAFKA_CMAK_PASSWORD
 
 volumes:
   zookeeper_data:
