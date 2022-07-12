@@ -4,7 +4,7 @@ services:
   kafka:
     image: bitnami/kafka:$KAFKA_VERSION
     container_name: $NAME
-    restart: always
+    restart: unless-stopped
     ports:
       - $KAFKA_PORT:9092
     volumes:
@@ -18,7 +18,7 @@ services:
   zookeeper:
     image: bitnami/zookeeper:$ZK_VERSION
     container_name: $NAME-zookeeper
-    restart: always
+    restart: unless-stopped
     ports:
       - $ZK_PORT:2181
     volumes:
@@ -29,7 +29,7 @@ services:
   cmak:
     image: ghcr.io/eshepelyuk/dckr/cmak-3.0.0.5:$CMAK_VERSION
     container_name: $NAME-cmak
-    restart: always
+    restart: unless-stopped
     ports:
       - $CMAK_PORT:9000
     environment:
