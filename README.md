@@ -13,10 +13,6 @@ cp .env.example .env
 docker compose up -d
 ```
 
-You can create a cluster using [Yahoo CMAK](https://github.com/eshepelyuk/cmak-docker). Point your browser to : http://127.0.0.1:9000
-
-![sc](https://github.com/yahoo/CMAK/raw/master/img/cluster.png)
-
 ---
 
 ## Support 💛
