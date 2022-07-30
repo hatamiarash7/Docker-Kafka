@@ -1,36 +1,47 @@
 version: "3.9"
 
 services:
-  kafka:
-    image: bitnami/kafka:$KAFKA_VERSION
-    container_name: $NAME
+  zoo:
+    image: confluentinc/cp-zookeeper:7.2.0
+    hostname: zoo
+    container_name: zoo
     restart: unless-stopped
     ports:
-      - $KAFKA_PORT:9092
-    volumes:
-      - kafka_data:/bitnami
+      - "2181:2181"
     environment:
-      ALLOW_PLAINTEXT_LISTENER: yes
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_INTERN://:29092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,PLAINTEXT_INTERN://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERN:PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLCIATION_FACTOR: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zoo:2888:3888
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.0
+    hostname: kafka
+    container_name: kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+      - "9999:9999"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-    depends_on:
-      - zookeeper
-
-  zookeeper:
-    image: bitnami/zookeeper:$ZK_VERSION
-    container_name: $NAME-zookeeper
-    restart: unless-stopped
-    ports:
-      - $ZK_PORT:2181
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
     volumes:
-      - zookeeper_data:/bitnami
-    environment:
-      ALLOW_ANONYMOUS_LOGIN: yes
+      - kafka_data:/var/lib/kafka/data
+    depends_on:
+      - zoo
 
   kafka-ui:
     container_name: kafka-ui
@@ -40,10 +51,11 @@ services:
       - 8080:8080
     depends_on:
       - kafka
+      - zoo
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zoo:2181
 
 volumes:
   zookeeper_data:
