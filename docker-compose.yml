@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   zoo:
-    image: confluentinc/cp-zookeeper:7.4.1
+    image: confluentinc/cp-zookeeper:7.6.0
     hostname: zoo
     container_name: zoo
     restart: unless-stopped
